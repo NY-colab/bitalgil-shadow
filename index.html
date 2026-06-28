@@ -673,4 +673,33 @@ const App = (() => {
     $('frontFace').className='face front '+info.cls;
     $('frontFace').innerHTML=`<div class="icon">${info.icon}</div><div class="role">${info.ko}</div><div class="desc">${info.desc}</div>`;
     $('flip').classList.remove('flipped');
-    $('readyBtn').style.display='none'; $('readyHint').style.display
+    $('readyBtn').style.display='none'; $('readyHint').style.display='none';
+    showPlayerPane('p-role');
+    loadBuffer(rl==='yokai'?'yokai':'traveler'); // 미리 받아두기
+  }
+  function flipCard(){ if(flipped)return; flipped=true; $('flip').classList.add('flipped'); $('readyBtn').style.display='flex'; }
+  function playerReady(){ ensureCtx(); $('readyBtn').textContent='준비 완료 — 진행자를 기다리는 중'; $('readyBtn').disabled=true; $('readyHint').style.display='block'; }
+  function resetToLobby(){ myRole=null; stopAudio(); showPlayerPane('p-lobby'); }
+
+  /* ====== 보조 ====== */
+  let wakeLock=null;
+  async function keepAwake(){ try{ if('wakeLock'in navigator) wakeLock=await navigator.wakeLock.request('screen'); }catch(e){} }
+  document.addEventListener('visibilitychange', ()=>{ if(wakeLock!==null && document.visibilityState==='visible') keepAwake(); });
+
+  function log(t){ const e=$('hostLog'); if(!e)return; const time=new Date().toLocaleTimeString('ko-KR',{hour12:false}); e.innerHTML=`<div>${time} · ${esc(t)}</div>`+e.innerHTML; }
+  function toast(elId,msg,warn){ if(!elId)return; const e=$(elId); if(!e)return; e.innerHTML=`<div class="banner ${warn?'warn':''}">${esc(msg)}</div>`; }
+  function esc(s){ return (s+'').replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])); }
+
+  // 코드 입력 자동 대문자
+  document.addEventListener('input', e=>{ if(e.target.id==='joinCode') e.target.value=e.target.value.toUpperCase(); });
+
+  return { go, startHost, showJoin, joinRoom, flipCard, playerReady,
+           bumpYokai, toggleSelf, assignRoles, hostPlay, hostStop, hostBeep, hostNextRound };
+})();
+
+// QR 또는 ?room= 로 들어온 경우 바로 참가 화면
+(function(){ const r=new URLSearchParams(location.search).get('room'); if(r){ App.showJoin(); } })();
+/* build: subtitles + bgm */
+</script>
+</body>
+</html>
