@@ -1,6 +1,6 @@
 import {setup,validateAction,applyAction} from "./logic.js";
 const canvas=document.getElementById("game"),ctx=canvas.getContext("2d",{alpha:false});
-const W=1200,H=675,HORIZON=245,FLOOR=675,PLAYER_FOOT=585;
+const W=1200,H=675,HORIZON=245,FLOOR=675,PLAYER_FOOT=560;
 const el=id=>document.getElementById(id);
 const overlay=el("overlay"),toast=el("toast"),pauseBtn=el("pause"),soundBtn=el("sound");
 const images={};
@@ -15,7 +15,7 @@ const stages=[
 ];
 let state=setup(["local"]),best=0;
 try{best=Number(localStorage.getItem("kbo-chase-best-v4")||0)||0;}catch{}
-let lastTime=0,accumulator=0,clock=0,renderX=600,lionRenderX=915,toastUntil=0,shake=0,flash=0;
+let lastTime=0,accumulator=0,clock=0,renderX=600,lionRenderX=662,toastUntil=0,shake=0,flash=0;
 let soundOn=false,audio=null,particles=[],hudTime=0,gamepadPrev={};
 let eventIndex=-1,displayMode="ready",shownLevel=1;
 function sfx(f=440,duration=.1,type="triangle",volume=.035){
@@ -47,7 +47,7 @@ function emitSpark(x,y,n=18,color="#ffd75d"){
 }
 function start(){
  state=applyAction(state,"local",{type:"start"});
- renderX=600;lionRenderX=915;accumulator=0;eventIndex=-1;shownLevel=1;
+ renderX=600;lionRenderX=662;accumulator=0;eventIndex=-1;shownLevel=1;
  particles=[];shake=0;flash=0;clock=0;
  displayMode="running";overlay.hidden=true;pauseBtn.textContent="Ⅱ";pauseBtn.ariaLabel="일시정지";canvas.focus();
  sfx(740,.16,"triangle",.06);refreshHud();
@@ -278,11 +278,11 @@ function drawRunners(){
  const charFrame=state.frame*.29;
  const jumpProgress=state.jump>0?(45-state.jump)/45:0;
  const jump=state.jump>0?Math.sin(jumpProgress*Math.PI)*127:0;
- const danger=clamp((72-gap)/57,0,1);
- // Lion sits behind the tiger, nearer the camera and laterally displaced.
- // Visual gap always leaves readable air between their silhouettes.
- const lionFoot=635-27*danger+Math.abs(Math.sin(clock*15+.9))*3.5;
- const lionH=171+19*danger;
+ const danger=clamp((76-gap)/62,0,1);
+ // The lion follows the same running lane, one depth-step closer to camera.
+ // It is lower on screen, not running alongside the tiger; the slight shoulder offset keeps both visible.
+ const lionFoot=656-49*danger+Math.abs(Math.sin(clock*15+.9))*3.5;
+ const lionH=170+22*danger;
  drawShadow(lionRenderX,lionFoot+6,53,.18+.11*danger);
  if(gap<27){ctx.save();ctx.shadowBlur=20;ctx.shadowColor="#fa3654";}
  drawSprite("lion",lionRenderX,lionFoot,lionH,charFrame*1.04+3.0,Math.sin(clock*4)*.018);
@@ -422,8 +422,10 @@ function tick(now){
   const target=laneAt(state.lane,PLAYER_FOOT);
   renderX+=(target-renderX)*Math.min(1,dt*13);
   const side=state.lane===2?-1:1;
-  const chaseTarget=clamp(renderX+side*(316-142*clamp((72-state.gap)/57,0,1)),125,1075);
-  lionRenderX+=(chaseTarget-lionRenderX)*Math.min(1,dt*2.1);
+  const danger=clamp((76-state.gap)/62,0,1);
+  const chaseTarget=clamp(laneAt(state.lane,PLAYER_FOOT)+side*(62-31*danger),150,1050);
+  // Slower lateral follow: when the tiger changes lanes, the lion follows in its footsteps.
+  lionRenderX+=(chaseTarget-lionRenderX)*Math.min(1,dt*1.75);
  }
  if(clock>toastUntil)toast.classList.remove("show");
  if(now-hudTime>50){refreshHud();hudTime=now}
