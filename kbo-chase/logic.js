@@ -83,7 +83,7 @@ export function applyAction(state,playerId,action) {
   const ducking=slide>0 && slide<=31;
   obstacles=obstacles.map(o=>{
     const z=o.z+dz;
-    if(o.judged || z<.89 || z>1.2)return {...o,z};
+    if(o.judged || z<.83 || z>1.2)return {...o,z};
     if(o.lane!==state.lane){return {...o,z,judged:true}};
     if(o.type==="goldball"){
       score+=225;gap=clamp(gap+23,0,94);boost=120;lastEvent="✨ 황금 야구공! 거리 벌리기";eventAt=f;
